@@ -19,81 +19,79 @@ const Edit = () => {
     formState: { errors },
     } = useForm();
 
-    // Fetch category data and set form default values
-    useEffect(() => {
-        const fetchCategory = async () => {
+    // Fetch brand data and set form default values
+        useEffect(() => {
+            const fetchBrand = async () => {
+                try {
+                    const response = await fetch(`${apiUrl}/brands/${params.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${adminToken()}`
+                        }
+                    });
+    
+                    const result = await response.json();
+    
+                    if (result.status === 200) {
+                        reset({
+                            name: result.data.name,
+                            status: result.data.status,
+                        });
+                    } else {
+                        console.error("Failed to fetch brand:", result);
+                    }
+                } catch (error) {
+                    console.error("Error fetching brand:", error);
+                }
+            };
+    
+            fetchBrand();
+        }, [params.id, reset]);
+    
+        // Save updated brand
+        const saveBrand = async (data) => {
+            setDisable(true);
             try {
-                const response = await fetch(`${apiUrl}/categories/${params.id}`, {
-                    method: 'GET',
+                const response = await fetch(`${apiUrl}/brands/${params.id}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'Authorization': `Bearer ${adminToken()}`
-                    }
+                    },
+                    body: JSON.stringify(data)
                 });
-
+    
                 const result = await response.json();
-
+    
                 if (result.status === 200) {
-                    reset({
-                        name: result.data.name,
-                        status: result.data.status,
-                    });
+                    toast.success(result.message);
+                    navigate('/admin/brands');
                 } else {
-                    console.error("Failed to fetch category:", result);
+                    console.error("Failed to update brand:", result);
                 }
             } catch (error) {
-                console.error("Error fetching category:", error);
+                console.error("Error updating brand:", error);
+            } finally {
+                setDisable(false);
             }
-        };
-
-        fetchCategory();
-    }, [params.id, reset]);
-
-    // Save updated category
-    const saveCategory = async (data) => {
-        setDisable(true);
-        try {
-            const response = await fetch(`${apiUrl}/categories/${params.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${adminToken()}`
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (result.status === 200) {
-                toast.success(result.message);
-                navigate('/admin/categories');
-            } else {
-                console.error("Failed to update category:", result);
-            }
-        } catch (error) {
-            console.error("Error updating category:", error);
-        } finally {
-            setDisable(false);
-        }
-};
-
+    };
 
   return (
     <Layout>
       <div className='container'>
           <div className='row'>
             <div className='d-flex justify-content-between mt-5 pb-3'>
-              <h4 className='h4 pb-0 mb 0'>Categories / Edit</h4>
-              <Link to="/admin/categories" className="btn btn-primary">Back</Link>
+              <h4 className='h4 pb-0 mb 0'>Brand / Edit</h4>
+              <Link to="" className="btn btn-primary">Back</Link>
             </div>
             <div className='col-md-3'>
                   <Sidebar/>
             </div>
-
             <div className='col-md-9'>
-            <form onSubmit={handleSubmit(saveCategory)}>
+            <form onSubmit={handleSubmit(saveBrand)}>
                     <div className='card shadow'>
                         <div className="card-body p-4">
                             <div className='mb-3'>

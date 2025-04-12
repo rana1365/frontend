@@ -14,36 +14,39 @@ const Create = () => {
     const {
         register,
         handleSubmit,
-        watch,
         formState: { errors },
         } = useForm();
     
     const saveCategory = async (data) => {
-        setDisable(true)
-        console.log(data)
-        const res = await fetch(`${apiUrl}/categories`,{
+        setDisable(true);
+        
+        try {
+            const response = await fetch(`${apiUrl}/categories`, {
             method: 'POST',
             headers: {
-                'Content-type' : 'application/json',
-                'Accept' : 'application/json',
-                'Authorization' : `Bearer ${adminToken()}`
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${adminToken()}`
             },
             body: JSON.stringify(data)
-        }).then(res => res.json(data))
-        .then(result => {
-            
-            setDisable(false)
-
-            if (result.status == 200) {
-                toast.success(result.message);
-                navigate('/admin/categories')
-                
+            });
+        
+            const result = await response.json();
+        
+            if (result.status === 200) {
+            toast.success(result.message);
+            navigate('/admin/categories');
             } else {
-                console.log("Something went wrong");
+            console.error("Failed to save category:", result);
+            toast.error(result.message || "Failed to save category");
             }
-            
-        })
-    }
+        } catch (error) {
+            console.error("Error saving category:", error);
+            toast.error("An error occurred while saving");
+        } finally {
+            setDisable(false);
+        }
+    };
 
   return (
     <Layout>

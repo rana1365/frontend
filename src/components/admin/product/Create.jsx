@@ -12,6 +12,8 @@ const Create = ({ placeholder }) => {
     const [disable, setDisable] = useState(false);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
+    const [sizesChecked, setSizesChecked] = useState([]);
+    const [sizes, setSizes] = useState([]);
     const [gallery, setGallery] = useState([]);
     const [galleryImages, setGalleryImages] = useState([]);
     const navigate = useNavigate();
@@ -30,6 +32,7 @@ const Create = ({ placeholder }) => {
         setError,
         formState: { errors },
         } = useForm();
+
     // Insert a product into database
     const saveProduct = async (data) => {
         const formData = { ...data, "description": content, "gallery": gallery }
@@ -64,6 +67,7 @@ const Create = ({ placeholder }) => {
             setDisable(false);
         }
     };
+
     // Fetching categories
     const fetchCategories = async () => {          
         const res = await fetch(`${apiUrl}/categories`, {
@@ -95,6 +99,23 @@ const Create = ({ placeholder }) => {
         setBrands(result.data);
       })
     };
+
+    // Fetching Sizes
+    const fetchSizes = async () => {          
+      const res = await fetch(`${apiUrl}/sizes`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${adminToken()}`
+          }
+      })
+      .then(res => res.json())
+      .then( result => {
+        setSizes(result.data);
+      })
+    };
+
 
     // This method will: 
     // 1. store image temporary location
@@ -134,6 +155,7 @@ const Create = ({ placeholder }) => {
     useEffect( () => {
       fetchCategories();
       fetchBrands();
+      fetchSizes();
     }, [] )
 
   return (
@@ -141,7 +163,7 @@ const Create = ({ placeholder }) => {
       <div className='container'>
           <div className='row'>
             <div className='d-flex justify-content-between mt-5 pb-3'>
-              <h4 className='h4 pb-0 mb 0'>Product Create</h4>
+              <h4 className='h4 pb-0 mb 0'>Product / Create</h4>
               <Link to="/admin/products" className="btn btn-primary">Back</Link>
             </div>
             <div className='col-md-3'>
@@ -361,7 +383,34 @@ const Create = ({ placeholder }) => {
                                       }
                                       </div>
 
-                                </div>                                                                 
+                                </div>
+                                <h4 className='py-3 border-bottom mb-3'><strong>Sizes</strong></h4>
+                                    <div className='mb-3'>
+                                        {
+                                          sizes && sizes.map(size => {
+                                            return (
+                                              <div className="form-check-inline ps-2" key={`psize-${size.id}`}>
+                                                <input {
+                                                  ...register("sizes")
+                                                }
+                                                checked={sizesChecked.includes(size.id)}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    setSizesChecked([...sizesChecked, size.id])
+                                                  } else {
+                                                    setSizesChecked(sizesChecked.filter(sid => size.id != sid))
+                                                  }
+                                                }}
+                                                className="form-check-input" type="checkbox" value={size.id} id={`size-${size.id}`} />
+                                                <label className="form-check-label ps-2" htmlFor={`size-${size.id}`}>
+                                                  {size.name}
+                                                </label>
+                                              </div>
+                                            )
+                                          })
+                                        }
+                                          
+                                    </div>                                                                 
                                     <h4 className='py-3 border-bottom mb-3'><strong>Gallery</strong></h4>
 
                                     <div className='mb-3'>
@@ -378,8 +427,8 @@ const Create = ({ placeholder }) => {
                                             <div className='col-md-3' key={`image-${index}`}>
                                               <div className='card shadow'>
                                                 <img src={image} alt='' className='w-100' />
-                                                <button className='btn btn-danger' onClick={() => deleteImage(image)}>Delete</button>
                                               </div>
+                                              <button className='btn btn-danger mt-3 w-100' onClick={() => deleteImage(image)}>Delete</button>
                                             </div>
                                           )
                                         })

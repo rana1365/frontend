@@ -98,6 +98,7 @@ ul{
     }
 }
 
+
 header {
     .navbar-expand-lg {
         .navbar-nav {
@@ -201,6 +202,7 @@ footer {
     .mySwiper {
         .swiper-slide {
             height: auto !important;
+            cursor: pointer;
         }
     }
     .price {

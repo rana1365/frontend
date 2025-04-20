@@ -21,6 +21,11 @@ import { default as EditBrand } from './components/admin/brand/Edit'
 import { default as ShowProducts } from './components/admin/product/Show'
 import { default as CreateProduct } from './components/admin/product/Create'
 import { default as EditProduct } from './components/admin/product/Edit'
+import { default as UserLogin } from './components/Login'
+import Register from './components/Register'
+import Profile from './components/Profile'
+import { UserRequireAuth } from './components/UserRequireAuth'
+import Confirmation from './components/Confirmation'
 
 function App() {
 
@@ -28,11 +33,38 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+          {/* User Routes */}
           <Route path='/' element={<Home/>}/>
+          
           <Route path='/shop' element={<Shop/>}/>
+
           <Route path='/product/:id' element={<Product/>}/>
+
           <Route path='/cart' element={<Cart/>}/>
-          <Route path='/checkout' element={<Checkout/>}/>
+
+          <Route path='/account/register' element={<Register/>}/>
+
+          <Route path='/account/login' element={<UserLogin/>}/>
+
+          <Route path='/checkout' element={
+            <UserRequireAuth>
+                <Checkout/>
+            </UserRequireAuth>
+          }/>
+
+          <Route path='/order/confirmation/:id' element={
+            <UserRequireAuth>
+                <Confirmation/>
+            </UserRequireAuth>
+          }/>
+
+          <Route path='/account' element={
+            <UserRequireAuth>
+                <Profile/>
+            </UserRequireAuth>
+          }/>
+          
+          {/* Admin Routes */}
           <Route path='/admin/login' element={<Login/>}/>
 
           <Route path='/admin/dashboard' element={

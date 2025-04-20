@@ -1,61 +1,60 @@
 import React, { useContext } from 'react'
-import Layout from '../common/Layout'
+import Layout from './common/Layout'
 import { useForm } from 'react-hook-form';
-import { apiUrl } from '../common/Http';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { AdminAuthContext } from '../context/AdminAuth';
+import { apiUrl } from './common/Http';
+import { AuthContext } from './context/Auth';
 
 const Login = () => {
 
-    const {login} = useContext(AdminAuthContext);
-
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors },
-    } = useForm();
-    
     const navigate = useNavigate();
+    const { login } = useContext(AuthContext);
+    const {
+            register,
+            handleSubmit,
+            watch,
+            setError,
+            formState: { errors },
+    } = useForm();
 
     const onSubmit = async (data) => {
-    console.log(data)
-
-    const res = await fetch(`${apiUrl}/admin/login`, {
-            method : 'POST',
-            headers : {
-                'Content-type' : 'application/json'
-            },
-            body : JSON.stringify(data)
-
-        }).then(res => res.json())
-        .then(result => {
-            console.log(result)
-            if(result.status == 200) {
-                const adminInfo = {
-                    token: result.token,
-                    id: result.id,
-                    name: result.name
+        const res = await fetch(`${apiUrl}/login`, {
+                method : 'POST',
+                headers : {
+                    'Content-type' : 'application/json'
+                },
+                body : JSON.stringify(data)
+    
+            })
+            .then(res => res.json())
+            .then(result => {
+                console.log(result)
+                if(result.status == 200) {
+                    const userInfo = {
+                        token: result.token,
+                        id: result.id,
+                        name: result.name
+                    }
+    
+                    localStorage.setItem('userInfo', JSON.stringify(userInfo))
+                    login(userInfo)
+                    navigate('/account')
+                    
+                } else {
+                    toast.error(result.message)
                 }
-
-                localStorage.setItem('adminInfo', JSON.stringify(adminInfo))
-                login(adminInfo)
-                navigate('/admin/dashboard')
-                
-            } else {
-                toast.error(result.message)
-            }
-        })
+            })
     }
 
   return (
     <Layout>
-        <div className='container d-flex justify-content-center py-5'>
-            <form onSubmit={handleSubmit(onSubmit)}>
+      <div className='container d-flex justify-content-center py-5'>
+      <form onSubmit={handleSubmit(onSubmit)}>
                 <div className='card shadow border-0 login'>
                     <div className='card-body p-4'>
-                        <h3>Admin Login</h3>
+                        <h3 className='border-bottom pb-2 mb-3'>User Login</h3>
+
                         <div className='mb-3'>
                             <label htmlFor='' className='form-label'>Email</label>
                             <input
@@ -94,13 +93,16 @@ const Login = () => {
                             }
                         </div>
 
-                        <button className='btn btn-secondary'>Login</button>
+                        <button className='btn btn-secondary w-100'>Login</button>
+
+                        <div className='d-flex justify-content-center pt-4 pb-2'>
+                            Don't have an account? &nbsp; <Link to="/account/register">Register</Link>
+                        </div>
 
                     </div>
                 </div>
 
             </form>
-
         </div>
     </Layout>
   )

@@ -19,7 +19,6 @@ const Checkout = () => {
     const {
         register,
         handleSubmit,
-        setError,
         formState: { errors },
     } = useForm();
 

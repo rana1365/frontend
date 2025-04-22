@@ -13,8 +13,6 @@ const Login = () => {
     const {
             register,
             handleSubmit,
-            watch,
-            setError,
             formState: { errors },
     } = useForm();
 

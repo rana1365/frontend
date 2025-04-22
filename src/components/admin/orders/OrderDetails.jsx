@@ -5,6 +5,7 @@ import Loader from '../../common/Loader'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { adminToken, apiUrl } from '../../common/Http'
+import { useForm } from 'react-hook-form'
 
 const OrderDetails = () => {
     const [order, setOrder] = useState([]);
@@ -12,22 +13,64 @@ const OrderDetails = () => {
     const[loader, setLoader] = useState(false);
     const params = useParams();
 
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm();
+
     const fetchOrder = async () => {
+        setLoader(true);
+        const res = await fetch(`${apiUrl}/orders/${params.id}`, {
+            method : 'GET',
+            headers : {
+                'Content-type' : 'application/json',
+                'Accept' : 'application/json',
+                'Authorization' : `Bearer ${adminToken()}`
+            }
+        })
+        .then( res => res.json())
+        .then( result => {
+            setLoader(false);
+            if (result.status == 200) {
+                setOrder(result.data);
+                setItems(result.data.items);
+                reset({
+                    status: result.data.status,
+                    payment_status: result.data.payment_status,
+                })
+            } else {
+                toast.error(result.message);
+            }
+        })
+        .catch(err => {
+            console.error("Fetch error:", err);
+            toast.error("Something went wrong");
+        });
+    }
+
+        const updateOrder = async (data) => {
             setLoader(true);
-            const res = await fetch(`${apiUrl}/orders/${params.id}`, {
-                method : 'GET',
+            const res = await fetch(`${apiUrl}/update-order/${params.id}`, {
+                method : 'POST',
                 headers : {
                     'Content-type' : 'application/json',
                     'Accept' : 'application/json',
                     'Authorization' : `Bearer ${adminToken()}`
-                }
+                },
+                body : JSON.stringify(data)
             })
             .then( res => res.json())
             .then( result => {
                 setLoader(false);
                 if (result.status == 200) {
                     setOrder(result.data);
-                    setItems(result.data.items);
+                    reset({
+                        status: result.data.status,
+                        payment_status: result.data.payment_status,
+                    })
+                    toast.success(result.message);
                 } else {
                     toast.error(result.message);
                 }
@@ -38,9 +81,9 @@ const OrderDetails = () => {
             });
         }
     
-        useEffect( () => {
-            fetchOrder();
-        },[]);
+    useEffect( () => {
+        fetchOrder();
+    },[]);
 
   return (
     <Layout>
@@ -114,28 +157,28 @@ const OrderDetails = () => {
                                         <div className='col-md-4'></div>
                                     </div>
 
-                                    <div class="row pt-3">
-                                        <h3 class="pb-2 "><strong>Items</strong></h3>
+                                    <div className="row pt-3">
+                                        <h3 className="pb-2 "><strong>Items</strong></h3>
                                         {
                                             items.map((item) => {
                                                 return (
-                                                        <div key={`${item.id}`} class="row justify-content-end">
-                                                            <div class="col-lg-12">
-                                                                <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-                                                                    <div class="d-flex">
+                                                        <div key={`${item.id}`} className="row justify-content-end">
+                                                            <div className="col-lg-12">
+                                                                <div className="d-flex justify-content-between border-bottom pb-2 mb-2">
+                                                                    <div className="d-flex">
                                                                         {
                                                                             item.product.image && <img 
-                                                                            width="70" class="me-3" 
+                                                                            width="70" className="me-3" 
                                                                             src={`${item.product.image_url}`} alt="" />
                                                                         }
-                                                                        <div class="d-flex flex-column">
-                                                                            <div class="mb-2"><span>{item.name}</span></div>
-                                                                            <div><button class="btn btn-size">{item.size}</button></div>
+                                                                        <div className="d-flex flex-column">
+                                                                            <div className="mb-2"><span>{item.name}</span></div>
+                                                                            <div><button className="btn btn-size">{item.size}</button></div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="d-flex">
+                                                                    <div className="d-flex">
                                                                         <div>X {item.qty}</div>
-                                                                        <div class="ps-3">${item.price}</div>
+                                                                        <div className="ps-3">${item.price}</div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -143,17 +186,17 @@ const OrderDetails = () => {
                                                         )
                                             })
                                         }
-                                        <div class="row justify-content-end">
-                                            <div class="col-lg-12">
-                                                <div class="d-flex  justify-content-between border-bottom pb-2 mb-2">
+                                        <div className="row justify-content-end">
+                                            <div className="col-lg-12">
+                                                <div className="d-flex  justify-content-between border-bottom pb-2 mb-2">
                                                     <div>Subtotal</div>
                                                     <div>${order.subtotal}</div>
                                                 </div>
-                                                <div class="d-flex  justify-content-between border-bottom pb-2 mb-2">
+                                                <div className="d-flex  justify-content-between border-bottom pb-2 mb-2">
                                                     <div>Shipping</div>
                                                     <div>${order.shipping}</div>
                                                 </div>
-                                                <div class="d-flex  justify-content-between border-bottom pb-2 mb-2">
+                                                <div className="d-flex  justify-content-between border-bottom pb-2 mb-2">
                                                     <div><strong>Grand Total</strong></div>
                                                     <div>${order.grand_total}</div>
                                                 </div>
@@ -169,7 +212,38 @@ const OrderDetails = () => {
                     <div className='col-md-3'>
                         <div className='card shadow'>
                             <div className="card-body p-4">
+                                <form onSubmit={handleSubmit(updateOrder)}>
+                                    <div className='mb-3'>
+                                        <label className='form-label' htmlFor='status'>Status</label>
+                                        <select 
+                                        {
+                                            ...register('status', {required: true})
+                                        }
+                                        className='form-select' id='status'>
+                                            <option value="pending">Pending</option>
+                                            <option value="shipped">Shipped</option>
+                                            <option value="delivered">Delivered</option>
+                                            <option value="cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
 
+                                    <div className='mb-3'>
+                                        <label className='form-label' htmlFor='payment-status'>Payment Status</label>
+                                        <select
+                                        {
+                                            ...register('payment_status', {required: true})
+                                        } 
+                                        className='form-select' id='payment_status'>
+                                            <option value="paid">Paid</option>
+                                            <option value="unpaid">Unpaid</option>
+                                        </select>
+                                    </div>
+
+                                    <div className='d-flex justify-content-center'>
+                                        <button className='btn btn-primary w-100' type='submit'>Update</button>
+                                    </div>
+
+                                </form>
                             </div>
                         </div>
                     </div>

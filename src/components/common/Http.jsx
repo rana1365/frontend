@@ -7,6 +7,14 @@ export const adminToken = () => {
 }
 
 export const userToken = () => {
-    const data = JSON.parse(localStorage.getItem('userInfo'))
-    return data.token;
-}
+    const data = localStorage.getItem('userInfo');
+    if (!data) return null;
+
+    try {
+        const parsed = JSON.parse(data);
+        return parsed?.token || null;
+    } catch (error) {
+        console.error("Error parsing userInfo:", error);
+        return null;
+    }
+};
